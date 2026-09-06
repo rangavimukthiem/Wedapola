@@ -8,7 +8,7 @@
 PRODUCT_NAME = mobile
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.sevalink.wedapola.mobile
+PRODUCT_BUNDLE_IDENTIFIER = com.ekafy.wedapola.mobile
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.sevalink.wedapola. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.ekafy.wedapola. All rights reserved.

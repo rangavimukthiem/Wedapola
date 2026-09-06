@@ -15,8 +15,8 @@ class AuthRepository {
   final Dio dio;
   final FlutterSecureStorage storage;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // scopes: ['email', 'profile'], 
-    // serverClientId: 'YOUR_WEB_CLIENT_ID' // Required for getting the idToken on some platforms
+    scopes: ['email', 'profile'], 
+    serverClientId: '990301540746-enffbji1n24qvns9kjh9t71iu45jb7oj.apps.googleusercontent.com',
   );
 
   AuthRepository({required this.dio, required this.storage});
