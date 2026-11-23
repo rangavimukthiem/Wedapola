@@ -1,4 +1,4 @@
-import { StorageProvider, StorageResult } from './StorageProvider';
+import { StorageProvider, StorageResult, UploadedFile } from './StorageProvider';
 import { LocalStorageProvider } from './LocalStorageProvider';
 import { S3StorageProvider } from './S3StorageProvider';
 import dotenv from 'dotenv';
@@ -23,7 +23,7 @@ export class StorageService {
         }
     }
 
-    async uploadFile(file: Express.Multer.File, ownerId: number, entityType: string, entityId: string, visibility: 'PUBLIC' | 'PRIVATE'): Promise<StorageResult> {
+    async uploadFile(file: UploadedFile, ownerId: number, entityType: string, entityId: string, visibility: 'PUBLIC' | 'PRIVATE'): Promise<StorageResult> {
         // 1. Upload to the actual storage provider
         const result = await this.provider.upload(file, entityType, entityId);
         

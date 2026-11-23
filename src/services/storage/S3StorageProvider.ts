@@ -1,4 +1,4 @@
-import { StorageProvider, StorageResult } from './StorageProvider';
+import { StorageProvider, StorageResult, UploadedFile } from './StorageProvider';
 import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
 import path from 'path';
@@ -25,7 +25,7 @@ export class S3StorageProvider implements StorageProvider {
         });
     }
 
-    async upload(file: Express.Multer.File, entityType: string, entityId: string): Promise<StorageResult> {
+    async upload(file: UploadedFile, entityType: string, entityId: string): Promise<StorageResult> {
         const ext = path.extname(file.originalname);
         const fileName = `${crypto.randomUUID()}${ext}`;
         // e.g. "technicians/123/uuid.jpg"
