@@ -11,7 +11,7 @@ export class LocalStorageProvider implements StorageProvider {
     private publicBaseUrl: string;
 
     constructor() {
-        this.storagePath = process.env.LOCAL_STORAGE_PATH || path.join(__dirname, '../../../storage');
+        this.storagePath = process.env.LOCAL_STORAGE_PATH || path.join(process.cwd(), 'storage');
         this.publicBaseUrl = process.env.PUBLIC_STORAGE_BASE_URL || 'http://localhost:3000/storage';
         
         // Ensure base storage directory exists

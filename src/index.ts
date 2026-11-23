@@ -27,7 +27,7 @@ app.use('/api', jobRoutes);
 // Static storage route
 // In production, you might want a middleware to check visibility before serving
 import path from 'path';
-const storagePath = process.env.LOCAL_STORAGE_PATH || path.join(__dirname, '../../storage');
+const storagePath = process.env.LOCAL_STORAGE_PATH || path.join(process.cwd(), 'storage');
 app.use('/storage', express.static(storagePath));
 
 app.get('/health', (req: Request, res: Response) => {

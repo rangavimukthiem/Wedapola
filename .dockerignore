@@ -1,0 +1,10 @@
+node_modules
+dist
+storage
+mobile
+.git
+.github
+*.md
+.env
+.env.*
+!.env.example
