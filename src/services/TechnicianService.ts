@@ -10,7 +10,8 @@ export class TechnicianService {
             FROM technician_profiles t
             JOIN technician_services ts ON t.id = ts.technician_id
             WHERE ts.category_id = ? 
-            AND t.verification_status = 'VERIFIED'
+            AND t.verification_status IN ('BASIC_VERIFIED', 'TRUSTED', 'PRO')
+            AND t.is_available = TRUE
             HAVING distance <= t.service_radius AND distance <= ?
             ORDER BY distance ASC
         `;

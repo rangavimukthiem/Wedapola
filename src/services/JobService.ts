@@ -42,9 +42,9 @@ export class JobService {
     }
 
     async acceptQuote(customerId: number, quoteId: number) {
-        const [quotes]: any = await pool.execute('SELECT request_id FROM quotes WHERE id = ?', [quoteId]);
+        const [quotes]: any = await pool.execute('SELECT request_id, technician_id FROM quotes WHERE id = ?', [quoteId]);
         if (quotes.length === 0) throw new Error('Quote not found');
-        const requestId = quotes[0].request_id;
+        const { request_id: requestId, technician_id: technicianId } = quotes[0];
 
         // Verify request belongs to customer
         const [requests]: any = await pool.execute('SELECT id FROM service_requests WHERE id = ? AND customer_id = ?', [requestId, customerId]);
@@ -54,8 +54,8 @@ export class JobService {
         await pool.execute('UPDATE quotes SET status = "REJECTED" WHERE request_id = ? AND id != ?', [requestId, quoteId]);
         
         const [result]: any = await pool.execute(
-            'INSERT INTO jobs (request_id, quote_id, status) VALUES (?, ?, ?)',
-            [requestId, quoteId, 'ACCEPTED']
+            'INSERT INTO jobs (request_id, quote_id, technician_id, customer_id, status) VALUES (?, ?, ?, ?, ?)',
+            [requestId, quoteId, technicianId, customerId, 'ACCEPTED']
         );
 
         await pool.execute('UPDATE service_requests SET status = "ACCEPTED" WHERE id = ?', [requestId]);
