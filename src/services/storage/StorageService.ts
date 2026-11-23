@@ -42,9 +42,9 @@ export class StorageService {
             result.storageKey, 
             file.originalname, 
             file.mimetype, 
-            file.size, 
+            file.size ?? null, 
             visibility
-        ]);
+        ] as any);
 
         // Override URL based on visibility if needed
         result.url = this.provider.getUrl(result.storageKey, visibility);
