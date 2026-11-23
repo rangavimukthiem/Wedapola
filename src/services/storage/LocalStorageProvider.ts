@@ -1,4 +1,4 @@
-import { StorageProvider, StorageResult } from './StorageProvider';
+import { StorageProvider, StorageResult, UploadedFile } from './StorageProvider';
 import * as fs from 'fs';
 import * as path from 'path';
 import crypto from 'crypto';
@@ -20,7 +20,7 @@ export class LocalStorageProvider implements StorageProvider {
         }
     }
 
-    async upload(file: Express.Multer.File, entityType: string, entityId: string): Promise<StorageResult> {
+    async upload(file: UploadedFile, entityType: string, entityId: string): Promise<StorageResult> {
         // e.g., entityType = 'technicians', entityId = '123'
         const dirPath = path.join(this.storagePath, entityType, entityId);
         

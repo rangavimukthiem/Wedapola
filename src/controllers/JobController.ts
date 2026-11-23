@@ -34,7 +34,7 @@ export class JobController {
     async submitQuote(req: AuthRequest, res: Response): Promise<void> {
         try {
             const technicianId = req.user!.userId;
-            const requestId = parseInt(req.params.id);
+            const requestId = parseInt(req.params.id as string, 10);
             const data = req.body;
 
             const quote = await jobService.submitQuote(technicianId, requestId, data);
@@ -47,7 +47,7 @@ export class JobController {
     async acceptQuote(req: AuthRequest, res: Response): Promise<void> {
         try {
             const customerId = req.user!.userId;
-            const quoteId = parseInt(req.params.id);
+            const quoteId = parseInt(req.params.id as string, 10);
 
             const job = await jobService.acceptQuote(customerId, quoteId);
             res.status(200).json(job);
