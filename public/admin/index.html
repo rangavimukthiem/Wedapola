@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wedapola Admin Dashboard - Worker & KYC Management</title>
+  <!-- Synchronous Auth Guard (EKAFY Standard) -->
+  <script>
+    (function() {
+      if (!localStorage.getItem('wedapola_admin_token')) {
+        window.location.replace('/admin/login.html');
+      }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#030712',
+              card: '#0b1329',
+              border: 'rgba(255, 255, 255, 0.08)',
+              cyan: '#38bdf8',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #030712;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#030712] text-slate-100 antialiased">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-[#030712]/90 backdrop-blur-md border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-lg">
+          W
+        </div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            Wedapola Admin
+          </span>
+          <span class="ml-2 text-xs text-slate-400 font-mono bg-white/5 border border-white/10 px-2 py-0.5 rounded">
+            v1.0.0
+          </span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="/" target="_blank" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-900/60 flex items-center gap-1.5 transition-colors">
+          <span>View Public Job Portal</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+
+        <button onclick="logout()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
+
+    <!-- KPI Metric Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold">Total Technicians</span>
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <div class="text-2xl font-black text-white" id="statTotalWorkers">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Across 24 trade categories</div>
+      </div>
+
+      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold">Pending KYC Queue</span>
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="text-2xl font-black text-amber-400" id="statPendingKyc">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Awaiting ID verification</div>
+      </div>
+
+      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold">Verified Pros & Trusted</span>
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <div class="text-2xl font-black text-emerald-400" id="statVerifiedPros">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">High-trust badge holders</div>
+      </div>
+
+      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold">Customer Inquiries</span>
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        </div>
+        <div class="text-2xl font-black text-cyan-400" id="statInquiries">0</div>
+        <div class="text-[11px] text-slate-400 mt-1">Portal dispatch requests</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center gap-3 border-b border-white/10 pb-2">
+      <button onclick="switchTab('workers')" id="tabWorkersBtn" class="px-4 py-2 text-sm font-bold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        Technicians & KYC Desk
+      </button>
+
+      <button onclick="switchTab('inquiries')" id="tabInquiriesBtn" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        Customer Inquiries / Callbacks
+      </button>
+    </div>
+
+    <!-- TAB 1: Technicians & KYC Desk -->
+    <section id="tabWorkersSection" class="space-y-4">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#0b1329] p-4 rounded-2xl border border-white/10">
+        <div class="flex flex-wrap items-center gap-2">
+          <input 
+            type="text" 
+            id="workerSearchInput" 
+            placeholder="Search worker by name, phone, or NIC..." 
+            onkeyup="if(event.key === 'Enter') loadTechnicians()"
+            class="px-3 py-2 bg-[#040814] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 w-64"
+          />
+
+          <select id="workerStatusFilter" onchange="loadTechnicians()" class="px-3 py-2 bg-[#040814] border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-cyan-400">
+            <option value="ALL">All KYC Statuses</option>
+            <option value="PENDING">Pending Verification</option>
+            <option value="BASIC_VERIFIED">Basic Verified</option>
+            <option value="TRUSTED">Trusted</option>
+            <option value="PRO">PRO</option>
+            <option value="SUSPENDED">Suspended</option>
+          </select>
+
+          <button onclick="loadTechnicians()" class="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs text-slate-300">
+            Refresh
+          </button>
+        </div>
+
+        <button onclick="openAddTechnicianModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Register New Worker
+        </button>
+      </div>
+
+      <!-- Technicians Table -->
+      <div class="bg-[#0b1329] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto custom-scroll">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#040814]/80 text-slate-400 uppercase font-mono tracking-wider border-b border-white/5">
+              <tr>
+                <th class="py-3 px-4">Technician</th>
+                <th class="py-3 px-4">Contact & NIC</th>
+                <th class="py-3 px-4">Trade / Category</th>
+                <th class="py-3 px-4">Rating & Jobs</th>
+                <th class="py-3 px-4">KYC Tier</th>
+                <th class="py-3 px-4 text-right">Verification Actions</th>
+              </tr>
+            </thead>
+            <tbody id="techniciansTableBody" class="divide-y divide-white/5 text-slate-300">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Customer Inquiries Desk -->
+    <section id="tabInquiriesSection" class="hidden space-y-4">
+      <div class="bg-[#0b1329] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto custom-scroll">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#040814]/80 text-slate-400 uppercase font-mono tracking-wider border-b border-white/5">
+              <tr>
+                <th class="py-3 px-4">Customer</th>
+                <th class="py-3 px-4">Phone / WhatsApp</th>
+                <th class="py-3 px-4">Location</th>
+                <th class="py-3 px-4">Urgency</th>
+                <th class="py-3 px-4">Description</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="inquiriesTableBody" class="divide-y divide-white/5 text-slate-300">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add Technician Modal -->
+  <div id="addTechModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-[#0b1329] border border-white/10 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-left">
+      <button onclick="closeAddTechnicianModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <h3 class="text-base font-bold text-white mb-1">Register & Onboard Worker</h3>
+      <p class="text-xs text-slate-400 mb-4">Add a new verified trade technician to the Wedapola directory</p>
+
+      <form id="addTechForm" onsubmit="handleAddTechSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
+          <input type="text" id="newTechName" required placeholder="e.g. Sunil Wickramasinghe" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
+            <input type="tel" id="newTechPhone" required placeholder="0771234567" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">National ID (NIC)</label>
+            <input type="text" id="newTechNic" placeholder="821941234V" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Primary Trade Category</label>
+          <select id="newTechCategory" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
+            <option value="14">Electrical & Wiring (විදුලි කාර්මික)</option>
+            <option value="15">Plumbing & Water Systems (ජලනල කාර්මික)</option>
+            <option value="16">AC & Refrigeration (වායු සමීකරණ)</option>
+            <option value="1">Tree Pruning & Felling (ගස් කැපීම)</option>
+            <option value="18">Masonry & Tiling (පෙදරේරු සහ ටයිල්)</option>
+            <option value="9">Mobile Auto Mechanic (හදිසි වාහන අලුත්වැඩියාව)</option>
+            <option value="5">Deep House Cleaning (පිරිසිදු කිරීම)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">City / Base Location</label>
+            <select id="newTechCity" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
+              <option value="6.9271,79.8612">Colombo / Western</option>
+              <option value="6.8728,79.8806">Dehiwala / Mt Lavinia</option>
+              <option value="6.8480,79.9265">Nugegoda / Maharagama</option>
+              <option value="6.9934,79.9142">Gampaha / Kelaniya</option>
+              <option value="7.2906,80.6337">Kandy</option>
+              <option value="6.0535,80.2210">Galle</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Initial Verification Tier</label>
+            <select id="newTechBadge" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
+              <option value="BASIC_VERIFIED">BASIC_VERIFIED (Phone & NIC verified)</option>
+              <option value="TRUSTED">TRUSTED (Address proof & 1 guarantor)</option>
+              <option value="PRO">PRO (Certified master / Police report)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Worker Bio & Specialties</label>
+          <textarea id="newTechBio" rows="2" placeholder="Experience, equipment available, special skills..." class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"></textarea>
+        </div>
+
+        <button type="submit" id="addTechSubmitBtn" class="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-cyan-500/20">
+          Save & Publish Worker
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('wedapola_admin_token');
+
+    function logout() {
+      localStorage.removeItem('wedapola_admin_token');
+      localStorage.removeItem('wedapola_admin_user');
+      window.location.replace('/admin/login.html');
+    }
+
+    function switchTab(tab) {
+      const workersSection = document.getElementById('tabWorkersSection');
+      const inquiriesSection = document.getElementById('tabInquiriesSection');
+      const tabWorkersBtn = document.getElementById('tabWorkersBtn');
+      const tabInquiriesBtn = document.getElementById('tabInquiriesBtn');
+
+      if (tab === 'workers') {
+        workersSection.classList.remove('hidden');
+        inquiriesSection.classList.add('hidden');
+        tabWorkersBtn.className = "px-4 py-2 text-sm font-bold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2";
+        tabInquiriesBtn.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2";
+        loadTechnicians();
+      } else {
+        workersSection.classList.add('hidden');
+        inquiriesSection.classList.remove('hidden');
+        tabInquiriesBtn.className = "px-4 py-2 text-sm font-bold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2";
+        tabWorkersBtn.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2";
+        loadInquiries();
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/admin/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401 || res.status === 403) return logout();
+        const stats = await res.json();
+        document.getElementById('statTotalWorkers').innerText = stats.totalWorkers || 0;
+        document.getElementById('statPendingKyc').innerText = stats.pendingKyc || 0;
+        document.getElementById('statVerifiedPros').innerText = (stats.pro || 0) + (stats.trusted || 0);
+        document.getElementById('statInquiries').innerText = stats.totalInquiries || 0;
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    }
+
+    function getBadgePill(status) {
+      if (status === 'PRO') {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">PRO</span>`;
+      } else if (status === 'TRUSTED') {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">TRUSTED</span>`;
+      } else if (status === 'BASIC_VERIFIED') {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">BASIC</span>`;
+      } else if (status === 'PENDING') {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 animate-pulse">PENDING KYC</span>`;
+      } else {
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">${status}</span>`;
+      }
+    }
+
+    async function loadTechnicians() {
+      const tbody = document.getElementById('techniciansTableBody');
+      const search = document.getElementById('workerSearchInput').value;
+      const status = document.getElementById('workerStatusFilter').value;
+
+      try {
+        let url = `/api/admin/technicians?status=${status}&search=${encodeURIComponent(search)}`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401 || res.status === 403) return logout();
+        const technicians = await res.json();
+
+        if (technicians.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-500">No technicians found matching criteria</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = technicians.map(t => {
+          return `
+            <tr class="hover:bg-white/[0.02] transition-colors">
+              <td class="py-3 px-4">
+                <div class="font-bold text-white">${t.name}</div>
+                <div class="text-[11px] text-slate-400 line-clamp-1">${t.bio || 'No bio'}</div>
+              </td>
+              <td class="py-3 px-4 font-mono">
+                <div class="text-cyan-400">${t.phone}</div>
+                <div class="text-[11px] text-slate-500">NIC: ${t.nic_number || 'Not provided'}</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="text-slate-300">${t.categories || 'General Handyman'}</span>
+              </td>
+              <td class="py-3 px-4 font-mono">
+                <div class="text-amber-400 font-bold">★ ${t.rating ? parseFloat(t.rating).toFixed(1) : '5.0'}</div>
+                <div class="text-[11px] text-slate-500">${t.completed_jobs_count || 0} jobs completed</div>
+              </td>
+              <td class="py-3 px-4">
+                ${getBadgePill(t.verification_status)}
+              </td>
+              <td class="py-3 px-4 text-right">
+                <div class="inline-flex items-center gap-1.5">
+                  <select onchange="updateWorkerStatus(${t.id}, this.value)" class="bg-[#040814] border border-white/10 text-[11px] text-slate-300 rounded px-2 py-1 focus:outline-none focus:border-cyan-400">
+                    <option value="" disabled selected>Change Tier...</option>
+                    <option value="BASIC_VERIFIED">Set Basic Verified</option>
+                    <option value="TRUSTED">Promote to Trusted</option>
+                    <option value="PRO">Promote to PRO</option>
+                    <option value="SUSPENDED">Suspend Worker</option>
+                  </select>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load technicians:', err);
+      }
+    }
+
+    async function updateWorkerStatus(id, newStatus) {
+      if (!newStatus) return;
+      try {
+        const res = await fetch(`/api/admin/technicians/${id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (res.ok) {
+          loadTechnicians();
+          loadStats();
+        } else {
+          alert('Failed to update status');
+        }
+      } catch (err) {
+        alert('Network error updating status');
+      }
+    }
+
+    async function loadInquiries() {
+      const tbody = document.getElementById('inquiriesTableBody');
+      try {
+        const res = await fetch('/api/admin/inquiries', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401 || res.status === 403) return logout();
+        const inquiries = await res.json();
+
+        if (inquiries.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500">No customer callback requests recorded</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = inquiries.map(i => {
+          let urgencyClass = i.urgency === 'EMERGENCY' ? 'text-rose-400 font-bold' : (i.urgency === 'HIGH' ? 'text-amber-400 font-semibold' : 'text-slate-400');
+          let statusBadge = i.status === 'NEW' 
+            ? `<span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-400 font-bold">NEW</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400">${i.status}</span>`;
+
+          return `
+            <tr class="hover:bg-white/[0.02] transition-colors">
+              <td class="py-3 px-4 font-bold text-white">${i.customer_name}</td>
+              <td class="py-3 px-4 font-mono">
+                <a href="tel:${i.customer_phone}" class="text-cyan-400 hover:underline">${i.customer_phone}</a>
+              </td>
+              <td class="py-3 px-4 text-slate-300">${i.city || 'Colombo'}</td>
+              <td class="py-3 px-4 ${urgencyClass}">${i.urgency}</td>
+              <td class="py-3 px-4 text-slate-300 max-w-xs truncate">${i.description}</td>
+              <td class="py-3 px-4">${statusBadge}</td>
+              <td class="py-3 px-4 text-right">
+                <button onclick="updateInquiryStatus(${i.id}, 'CONTACTED')" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-slate-300 rounded text-[11px] border border-white/10">
+                  Mark Contacted
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load inquiries:', err);
+      }
+    }
+
+    async function updateInquiryStatus(id, newStatus) {
+      try {
+        await fetch(`/api/admin/inquiries/${id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+        loadInquiries();
+        loadStats();
+      } catch (err) {}
+    }
+
+    // Add Technician Modal logic
+    function openAddTechnicianModal() {
+      document.getElementById('addTechModal').classList.remove('hidden');
+      document.getElementById('addTechModal').classList.add('flex');
+    }
+    function closeAddTechnicianModal() {
+      document.getElementById('addTechModal').classList.add('hidden');
+      document.getElementById('addTechModal').classList.remove('flex');
+    }
+
+    async function handleAddTechSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('addTechSubmitBtn');
+      btn.disabled = true;
+      btn.innerText = 'Registering Worker...';
+
+      const [lat, lon] = document.getElementById('newTechCity').value.split(',');
+
+      const payload = {
+        name: document.getElementById('newTechName').value,
+        phone: document.getElementById('newTechPhone').value,
+        nicNumber: document.getElementById('newTechNic').value,
+        categoryId: parseInt(document.getElementById('newTechCategory').value),
+        verificationStatus: document.getElementById('newTechBadge').value,
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lon),
+        bio: document.getElementById('newTechBio').value
+      };
+
+      try {
+        const res = await fetch('/api/admin/technicians', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('Worker Registered Successfully!');
+          closeAddTechnicianModal();
+          document.getElementById('addTechForm').reset();
+          loadTechnicians();
+          loadStats();
+        } else {
+          alert('Failed to register worker');
+        }
+      } catch (err) {
+        alert('Network error while saving worker');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Save & Publish Worker';
+      }
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+      loadTechnicians();
+    });
+  </script>
+</body>
+</html>
