@@ -16,9 +16,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(helmet({ 
+app.use(helmet({
     crossOriginResourcePolicy: false,
-    contentSecurityPolicy: false // Allow CDN scripts & fonts for UI
+    contentSecurityPolicy: false // Allow CDN scripts & fonts for portal/admin UI
 }));
 app.use(express.json());
 
@@ -34,31 +34,34 @@ app.use('/api', jobRoutes);
 const storagePath = process.env.LOCAL_STORAGE_PATH || path.join(process.cwd(), 'storage');
 app.use('/storage', express.static(storagePath));
 
-// Static Frontend Portal & Admin Panel
+// === Static Frontends ===
 const publicPath = path.join(process.cwd(), 'public');
-app.use(express.static(publicPath));
 
-// Friendly route fallbacks
-app.get('/admin', (req: Request, res: Response) => {
+// Admin Panel at /admin/
+app.use('/admin', express.static(path.join(publicPath, 'admin')));
+app.get('/admin', (_req: Request, res: Response) => {
     res.sendFile(path.join(publicPath, 'admin', 'index.html'));
 });
 
-app.get('/admin/login', (req: Request, res: Response) => {
-    res.sendFile(path.join(publicPath, 'admin', 'login.html'));
+// Customer Job Portal at /portal/
+app.use('/portal', express.static(path.join(publicPath, 'portal')));
+app.get('/portal', (_req: Request, res: Response) => {
+    res.sendFile(path.join(publicPath, 'portal', 'index.html'));
 });
 
-app.get('/health', (req: Request, res: Response) => {
+// Root → redirect to customer portal
+app.get('/', (_req: Request, res: Response) => {
+    res.redirect('/portal/');
+});
+
+// Health check
+app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'ok', message: 'Wedapola API is running' });
 });
 
-// Root fallback to customer portal
-app.get('*', (req: Request, res: Response) => {
-    // If request has not matched API routes, serve the customer job portal
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(publicPath, 'index.html'));
-    } else {
-        res.status(404).json({ error: 'Endpoint not found' });
-    }
+// 404 for any other API routes
+app.use('/api', (_req: Request, res: Response) => {
+    res.status(404).json({ error: 'API endpoint not found' });
 });
 
 app.listen(port, () => {

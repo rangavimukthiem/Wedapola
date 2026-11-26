@@ -1,561 +1,461 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wedapola Admin Dashboard - Worker & KYC Management</title>
-  <!-- Synchronous Auth Guard (EKAFY Standard) -->
-  <script>
-    (function() {
-      if (!localStorage.getItem('wedapola_admin_token')) {
-        window.location.replace('/admin/login.html');
-      }
-    })();
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              bg: '#030712',
-              card: '#0b1329',
-              border: 'rgba(255, 255, 255, 0.08)',
-              cyan: '#38bdf8',
-              emerald: '#10b981',
-              amber: '#f59e0b',
-              rose: '#f43f5e'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace']
-          }
-        }
-      }
-    }
-  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wedapola Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    body {
-      background-color: #030712;
-      color: #f1f5f9;
-      font-family: 'Inter', sans-serif;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #030712; --sidebar: #080f1f; --card: #0b1329; --card2: #0d1527;
+      --border: rgba(255,255,255,0.08); --cyan: #38bdf8; --cyan-dark: #0284c7;
+      --green: #10b981; --amber: #f59e0b; --red: #f43f5e; --purple: #8b5cf6;
+      --text: #e2e8f0; --muted: #94a3b8; --radius: 10px;
     }
-    .custom-scroll::-webkit-scrollbar {
-      height: 6px;
-      width: 6px;
-    }
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 9999px;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+    #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 380px; }
+    .login-logo { font-size: 1.6rem; font-weight: 700; color: var(--cyan); margin-bottom: 4px; }
+    .login-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 28px; }
+    .login-box label { display: block; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; margin-bottom: 5px; font-weight: 500; }
+    .login-box input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 0.9rem; outline: none; margin-bottom: 14px; font-family: inherit; }
+    .login-box input:focus { border-color: var(--cyan); }
+    .btn-login { width: 100%; background: linear-gradient(135deg, var(--cyan), var(--cyan-dark)); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 6px; }
+    .login-hint { font-size: 0.75rem; color: #3d5a7a; text-align: center; margin-top: 14px; font-family: 'JetBrains Mono', monospace; }
+    #loginError { color: var(--red); font-size: 0.82rem; margin-bottom: 10px; display: none; }
+    #appShell { display: none; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; flex-shrink: 0; }
+    .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
+    .sidebar-logo .name { font-size: 1.1rem; font-weight: 700; color: var(--cyan); }
+    .sidebar-logo .role { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+    .nav-items { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: var(--muted); transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .nav-item.active { background: rgba(56,189,248,0.1); color: var(--cyan); font-weight: 500; }
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+    .btn-logout { width: 100%; background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; }
+    .btn-logout:hover { color: var(--red); border-color: var(--red); }
+    .main { flex: 1; overflow: auto; display: flex; flex-direction: column; }
+    .topbar { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(8,15,31,0.8); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 600; }
+    .portal-btn { font-size: 0.8rem; color: var(--muted); text-decoration: none; padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; }
+    .portal-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+    .content { padding: 24px; flex: 1; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .stat-card .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .stat-card .value { font-size: 1.9rem; font-weight: 700; line-height: 1; }
+    .stat-card .sub { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+    .section-header h2 { font-size: 0.95rem; font-weight: 600; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filter-row input, .filter-row select { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 7px; font-size: 0.82rem; outline: none; font-family: inherit; }
+    .filter-row input:focus, .filter-row select:focus { border-color: var(--cyan); }
+    .filter-row select option { background: #0d1527; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    thead th { background: var(--card2); padding: 10px 12px; text-align: left; color: var(--muted); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody td { padding: 10px 12px; vertical-align: middle; }
+    .tbl-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .tbl-scroll { overflow-x: auto; }
+    .badge { display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    .b-pro { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .b-trusted { background: rgba(56,189,248,0.12); color: var(--cyan); border: 1px solid rgba(56,189,248,0.3); }
+    .b-basic { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+    .b-pending { background: rgba(244,63,94,0.12); color: var(--red); border: 1px solid rgba(244,63,94,0.3); }
+    .b-new { background: rgba(139,92,246,0.12); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+    .b-contacted { background: rgba(56,189,248,0.12); color: var(--cyan); border: 1px solid rgba(56,189,248,0.3); }
+    .b-resolved { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .b-emergency { background: rgba(244,63,94,0.15); color: var(--red); border: 1px solid rgba(244,63,94,0.3); }
+    .b-high { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+    .btn-sm { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; border: 1px solid var(--border); background: none; color: var(--muted); transition: all 0.15s; white-space: nowrap; }
+    .btn-approve { border-color: rgba(16,185,129,0.4); color: var(--green); }
+    .btn-approve:hover { background: rgba(16,185,129,0.1); }
+    .btn-trust { border-color: rgba(56,189,248,0.4); color: var(--cyan); }
+    .btn-trust:hover { background: rgba(56,189,248,0.1); }
+    .btn-pro { border-color: rgba(16,185,129,0.6); color: var(--green); font-weight: 600; }
+    .btn-pro:hover { background: rgba(16,185,129,0.15); }
+    .btn-suspend { border-color: rgba(244,63,94,0.4); color: var(--red); }
+    .btn-suspend:hover { background: rgba(244,63,94,0.1); }
+    .btn-primary { background: linear-gradient(135deg, var(--cyan), var(--cyan-dark)); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .phone-mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--cyan); }
+    .wa-link { display: inline-flex; align-items: center; gap: 4px; color: #25D366; text-decoration: none; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(37,211,102,0.3); }
+    .wa-link:hover { background: rgba(37,211,102,0.1); }
+    .stars-sm { color: var(--amber); font-size: 0.75rem; }
+    .text-muted { color: var(--muted); }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(3,7,18,0.85); z-index: 300; align-items: center; justify-content: center; padding: 16px; }
+    .overlay.show { display: flex; }
+    .modal { background: var(--card2); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 540px; max-height: calc(100vh - 2rem); display: flex; flex-direction: column; }
+    .modal-header { padding: 20px 24px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1rem; font-weight: 600; }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+    .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.72rem; color: var(--muted); margin-bottom: 5px; font-weight: 500; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-size: 0.88rem; outline: none; font-family: inherit; }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel { background: none; border: 1px solid var(--border); color: var(--muted); padding: 9px 20px; border-radius: 8px; cursor: pointer; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a2a4a; border: 1px solid var(--cyan); color: var(--cyan); padding: 11px 22px; border-radius: 8px; font-size: 0.88rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+    .toast.show { opacity: 1; }
+    .empty-row td { text-align: center; padding: 40px; color: var(--muted); }
+    .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .action-btns { display: flex; gap: 5px; flex-wrap: wrap; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col bg-[#030712] text-slate-100 antialiased">
+<body>
+<script>
+  (function() {
+    if (sessionStorage.getItem('wadmin_token')) {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appShell').style.display = 'block';
+        initApp();
+      });
+    }
+  })();
+</script>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-40 bg-[#030712]/90 backdrop-blur-md border-b border-white/10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-lg">
-          W
-        </div>
-        <div>
-          <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            Wedapola Admin
-          </span>
-          <span class="ml-2 text-xs text-slate-400 font-mono bg-white/5 border border-white/10 px-2 py-0.5 rounded">
-            v1.0.0
-          </span>
-        </div>
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Wedapola</div>
+    <div class="login-sub">Admin Control Panel</div>
+    <div id="loginError"></div>
+    <label>Username</label>
+    <input type="text" id="loginUser" value="admin" />
+    <label>Password</label>
+    <input type="password" id="loginPass" placeholder="••••••••" onkeyup="if(event.key==='Enter') doLogin()" />
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <div class="login-hint">Default: admin / admin123</div>
+  </div>
+</div>
+
+<div id="appShell">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="name">Wedapola</div>
+        <div class="role">Admin Panel</div>
       </div>
+      <nav class="nav-items">
+        <button class="nav-item active" onclick="showPage('dashboard',this)"><span>📊</span> Dashboard</button>
+        <button class="nav-item" onclick="showPage('workers',this)"><span>👷</span> Workers</button>
+        <button class="nav-item" onclick="showPage('kyc',this)"><span>🪪</span> KYC Queue</button>
+        <button class="nav-item" onclick="showPage('inquiries',this)"><span>📩</span> Inquiries</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="doLogout()">↩ Sign Out</button>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <h1 id="pageTitle">Dashboard</h1>
+        <a href="/portal/" class="portal-btn" target="_blank">Customer Portal ↗</a>
+      </div>
+      <div class="content">
 
-      <div class="flex items-center gap-3">
-        <a href="/" target="_blank" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-900/60 flex items-center gap-1.5 transition-colors">
-          <span>View Public Job Portal</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-        </a>
+        <div id="page-dashboard" class="page active">
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="label">Total Workers</div><div class="value" style="color:var(--cyan)">—</div></div>
+            <div class="stat-card"><div class="label">Available Now</div><div class="value" style="color:var(--green)">—</div></div>
+            <div class="stat-card"><div class="label">PRO Verified</div><div class="value" style="color:var(--green)">—</div></div>
+            <div class="stat-card"><div class="label">Trusted</div><div class="value" style="color:var(--cyan)">—</div></div>
+            <div class="stat-card"><div class="label">KYC Pending</div><div class="value" style="color:var(--red)">—</div></div>
+            <div class="stat-card"><div class="label">Total Inquiries</div><div class="value" style="color:var(--purple)">—</div></div>
+            <div class="stat-card"><div class="label">Categories</div><div class="value" style="color:var(--amber)">—</div></div>
+          </div>
+          <div style="color:var(--muted);font-size:0.85rem;text-align:center;margin-top:40px">
+            <div style="font-size:2.5rem;margin-bottom:8px">👋</div>
+            Welcome to Wedapola Admin. Use the sidebar to manage workers, KYC approvals and customer inquiries.
+          </div>
+        </div>
 
-        <button onclick="logout()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-          Sign Out
-        </button>
+        <div id="page-workers" class="page">
+          <div class="section-header">
+            <h2>All Workers</h2>
+            <div class="filter-row">
+              <input type="text" id="workerSearch" placeholder="Search name / phone / NIC..." oninput="loadWorkers()" style="min-width:200px" />
+              <select id="workerStatusFilter" onchange="loadWorkers()">
+                <option value="ALL">All Statuses</option>
+                <option value="PENDING">Pending</option>
+                <option value="BASIC_VERIFIED">Basic Verified</option>
+                <option value="TRUSTED">Trusted</option>
+                <option value="PRO">PRO</option>
+                <option value="SUSPENDED">Suspended</option>
+              </select>
+              <button class="btn-primary" onclick="openAddWorker()">+ Add Worker</button>
+            </div>
+          </div>
+          <div class="tbl-wrap"><div class="tbl-scroll">
+            <table>
+              <thead><tr><th>Worker</th><th>Contact</th><th>Categories</th><th>Status</th><th>Rating</th><th>Jobs</th><th>Actions</th></tr></thead>
+              <tbody id="workersTable"><tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+
+        <div id="page-kyc" class="page">
+          <div class="section-header">
+            <h2>KYC Approval Queue</h2>
+            <span style="font-size:0.8rem;color:var(--muted)">Workers pending verification</span>
+          </div>
+          <div class="tbl-wrap"><div class="tbl-scroll">
+            <table>
+              <thead><tr><th>Worker</th><th>Phone</th><th>NIC</th><th>Police Report</th><th>Applied</th><th>Actions</th></tr></thead>
+              <tbody id="kycTable"><tr><td colspan="6" style="text-align:center;padding:40px"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+
+        <div id="page-inquiries" class="page">
+          <div class="section-header">
+            <h2>Customer Inquiries</h2>
+            <span style="font-size:0.8rem;color:var(--muted)">Follow up with customers</span>
+          </div>
+          <div class="tbl-wrap"><div class="tbl-scroll">
+            <table>
+              <thead><tr><th>Customer</th><th>Phone</th><th>Service</th><th>Worker</th><th>Urgency</th><th>Status</th><th>Time</th><th>Actions</th></tr></thead>
+              <tbody id="inquiriesTable"><tr><td colspan="8" style="text-align:center;padding:40px"><div class="spinner"></div></td></tr></tbody>
+            </table>
+          </div></div>
+        </div>
+
       </div>
     </div>
-  </header>
+  </div>
+</div>
 
-  <!-- Main Container -->
-  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
-
-    <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold">Total Technicians</span>
-          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        </div>
-        <div class="text-2xl font-black text-white" id="statTotalWorkers">0</div>
-        <div class="text-[11px] text-slate-400 mt-1">Across 24 trade categories</div>
+<div class="overlay" id="addWorkerModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Register New Worker</h3><button class="modal-close" onclick="closeAddWorker()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="aw-name" placeholder="e.g. Sunil Perera" /></div>
+        <div class="form-group"><label>Phone *</label><input type="tel" id="aw-phone" placeholder="+94771234567" /></div>
       </div>
-
-      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold">Pending KYC Queue</span>
-          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-        </div>
-        <div class="text-2xl font-black text-amber-400" id="statPendingKyc">0</div>
-        <div class="text-[11px] text-slate-400 mt-1">Awaiting ID verification</div>
-      </div>
-
-      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold">Verified Pros & Trusted</span>
-          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-        </div>
-        <div class="text-2xl font-black text-emerald-400" id="statVerifiedPros">0</div>
-        <div class="text-[11px] text-slate-400 mt-1">High-trust badge holders</div>
-      </div>
-
-      <div class="bg-[#0b1329] border border-white/10 rounded-2xl p-4 shadow-xl">
-        <div class="flex items-center justify-between text-slate-400 mb-2">
-          <span class="text-xs font-semibold">Customer Inquiries</span>
-          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-        </div>
-        <div class="text-2xl font-black text-cyan-400" id="statInquiries">0</div>
-        <div class="text-[11px] text-slate-400 mt-1">Portal dispatch requests</div>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="flex items-center gap-3 border-b border-white/10 pb-2">
-      <button onclick="switchTab('workers')" id="tabWorkersBtn" class="px-4 py-2 text-sm font-bold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-        Technicians & KYC Desk
-      </button>
-
-      <button onclick="switchTab('inquiries')" id="tabInquiriesBtn" class="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-        Customer Inquiries / Callbacks
-      </button>
-    </div>
-
-    <!-- TAB 1: Technicians & KYC Desk -->
-    <section id="tabWorkersSection" class="space-y-4">
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#0b1329] p-4 rounded-2xl border border-white/10">
-        <div class="flex flex-wrap items-center gap-2">
-          <input 
-            type="text" 
-            id="workerSearchInput" 
-            placeholder="Search worker by name, phone, or NIC..." 
-            onkeyup="if(event.key === 'Enter') loadTechnicians()"
-            class="px-3 py-2 bg-[#040814] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 w-64"
-          />
-
-          <select id="workerStatusFilter" onchange="loadTechnicians()" class="px-3 py-2 bg-[#040814] border border-white/10 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-cyan-400">
-            <option value="ALL">All KYC Statuses</option>
-            <option value="PENDING">Pending Verification</option>
+      <div class="form-row">
+        <div class="form-group"><label>NIC Number</label><input type="text" id="aw-nic" placeholder="821234567V" /></div>
+        <div class="form-group"><label>Verification Status</label>
+          <select id="aw-status">
             <option value="BASIC_VERIFIED">Basic Verified</option>
             <option value="TRUSTED">Trusted</option>
             <option value="PRO">PRO</option>
-            <option value="SUSPENDED">Suspended</option>
-          </select>
-
-          <button onclick="loadTechnicians()" class="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs text-slate-300">
-            Refresh
-          </button>
-        </div>
-
-        <button onclick="openAddTechnicianModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Register New Worker
-        </button>
-      </div>
-
-      <!-- Technicians Table -->
-      <div class="bg-[#0b1329] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-        <div class="overflow-x-auto custom-scroll">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-[#040814]/80 text-slate-400 uppercase font-mono tracking-wider border-b border-white/5">
-              <tr>
-                <th class="py-3 px-4">Technician</th>
-                <th class="py-3 px-4">Contact & NIC</th>
-                <th class="py-3 px-4">Trade / Category</th>
-                <th class="py-3 px-4">Rating & Jobs</th>
-                <th class="py-3 px-4">KYC Tier</th>
-                <th class="py-3 px-4 text-right">Verification Actions</th>
-              </tr>
-            </thead>
-            <tbody id="techniciansTableBody" class="divide-y divide-white/5 text-slate-300">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: Customer Inquiries Desk -->
-    <section id="tabInquiriesSection" class="hidden space-y-4">
-      <div class="bg-[#0b1329] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-        <div class="overflow-x-auto custom-scroll">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-[#040814]/80 text-slate-400 uppercase font-mono tracking-wider border-b border-white/5">
-              <tr>
-                <th class="py-3 px-4">Customer</th>
-                <th class="py-3 px-4">Phone / WhatsApp</th>
-                <th class="py-3 px-4">Location</th>
-                <th class="py-3 px-4">Urgency</th>
-                <th class="py-3 px-4">Description</th>
-                <th class="py-3 px-4">Status</th>
-                <th class="py-3 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="inquiriesTableBody" class="divide-y divide-white/5 text-slate-300">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Add Technician Modal -->
-  <div id="addTechModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-[#0b1329] border border-white/10 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-left">
-      <button onclick="closeAddTechnicianModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-
-      <h3 class="text-base font-bold text-white mb-1">Register & Onboard Worker</h3>
-      <p class="text-xs text-slate-400 mb-4">Add a new verified trade technician to the Wedapola directory</p>
-
-      <form id="addTechForm" onsubmit="handleAddTechSubmit(event)" class="space-y-3.5">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
-          <input type="text" id="newTechName" required placeholder="e.g. Sunil Wickramasinghe" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
-            <input type="tel" id="newTechPhone" required placeholder="0771234567" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">National ID (NIC)</label>
-            <input type="text" id="newTechNic" placeholder="821941234V" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Primary Trade Category</label>
-          <select id="newTechCategory" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
-            <option value="14">Electrical & Wiring (විදුලි කාර්මික)</option>
-            <option value="15">Plumbing & Water Systems (ජලනල කාර්මික)</option>
-            <option value="16">AC & Refrigeration (වායු සමීකරණ)</option>
-            <option value="1">Tree Pruning & Felling (ගස් කැපීම)</option>
-            <option value="18">Masonry & Tiling (පෙදරේරු සහ ටයිල්)</option>
-            <option value="9">Mobile Auto Mechanic (හදිසි වාහන අලුත්වැඩියාව)</option>
-            <option value="5">Deep House Cleaning (පිරිසිදු කිරීම)</option>
+            <option value="PENDING">Pending Review</option>
           </select>
         </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">City / Base Location</label>
-            <select id="newTechCity" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
-              <option value="6.9271,79.8612">Colombo / Western</option>
-              <option value="6.8728,79.8806">Dehiwala / Mt Lavinia</option>
-              <option value="6.8480,79.9265">Nugegoda / Maharagama</option>
-              <option value="6.9934,79.9142">Gampaha / Kelaniya</option>
-              <option value="7.2906,80.6337">Kandy</option>
-              <option value="6.0535,80.2210">Galle</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Initial Verification Tier</label>
-            <select id="newTechBadge" class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400">
-              <option value="BASIC_VERIFIED">BASIC_VERIFIED (Phone & NIC verified)</option>
-              <option value="TRUSTED">TRUSTED (Address proof & 1 guarantor)</option>
-              <option value="PRO">PRO (Certified master / Police report)</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Worker Bio & Specialties</label>
-          <textarea id="newTechBio" rows="2" placeholder="Experience, equipment available, special skills..." class="w-full px-3 py-2 bg-[#040814] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400"></textarea>
-        </div>
-
-        <button type="submit" id="addTechSubmitBtn" class="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-cyan-500/20">
-          Save & Publish Worker
-        </button>
-      </form>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Latitude (default: Colombo)</label><input type="number" id="aw-lat" placeholder="6.9271" step="0.0001" /></div>
+        <div class="form-group"><label>Longitude</label><input type="number" id="aw-lon" placeholder="79.8612" step="0.0001" /></div>
+      </div>
+      <div class="form-group"><label>Service Category</label>
+        <select id="aw-category"><option value="">— None —</option></select>
+      </div>
+      <div class="form-group"><label>Bio / Skills</label><textarea id="aw-bio" placeholder="Brief description of skills and experience..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAddWorker()">Cancel</button>
+      <button class="btn-primary" onclick="submitAddWorker()">Register Worker</button>
     </div>
   </div>
+</div>
 
-  <script>
-    const token = localStorage.getItem('wedapola_admin_token');
+<div class="toast" id="toast"></div>
 
-    function logout() {
-      localStorage.removeItem('wedapola_admin_token');
-      localStorage.removeItem('wedapola_admin_user');
-      window.location.replace('/admin/login.html');
-    }
+<script>
+  const API = '';
+  let authToken = sessionStorage.getItem('wadmin_token') || '';
 
-    function switchTab(tab) {
-      const workersSection = document.getElementById('tabWorkersSection');
-      const inquiriesSection = document.getElementById('tabInquiriesSection');
-      const tabWorkersBtn = document.getElementById('tabWorkersBtn');
-      const tabInquiriesBtn = document.getElementById('tabInquiriesBtn');
+  async function doLogin() {
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    try {
+      const r = await fetch(API + '/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username, password}) });
+      const data = await r.json();
+      if (data.token) {
+        authToken = data.token;
+        sessionStorage.setItem('wadmin_token', authToken);
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appShell').style.display = 'block';
+        initApp();
+      } else { errEl.textContent = data.error || 'Invalid credentials'; errEl.style.display = 'block'; }
+    } catch(e) { errEl.textContent = 'Cannot reach the server.'; errEl.style.display = 'block'; }
+  }
 
-      if (tab === 'workers') {
-        workersSection.classList.remove('hidden');
-        inquiriesSection.classList.add('hidden');
-        tabWorkersBtn.className = "px-4 py-2 text-sm font-bold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2";
-        tabInquiriesBtn.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2";
-        loadTechnicians();
-      } else {
-        workersSection.classList.add('hidden');
-        inquiriesSection.classList.remove('hidden');
-        tabInquiriesBtn.className = "px-4 py-2 text-sm font-bold border-b-2 border-cyan-400 text-cyan-400 flex items-center gap-2";
-        tabWorkersBtn.className = "px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white border-b-2 border-transparent flex items-center gap-2";
-        loadInquiries();
-      }
-    }
+  function doLogout() { sessionStorage.removeItem('wadmin_token'); authToken = ''; location.reload(); }
+  function af(url, opts={}) { return fetch(API+url, {...opts, headers:{'Authorization':'Bearer '+authToken,'Content-Type':'application/json',...(opts.headers||{})}}); }
 
-    async function loadStats() {
-      try {
-        const res = await fetch('/api/admin/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.status === 401 || res.status === 403) return logout();
-        const stats = await res.json();
-        document.getElementById('statTotalWorkers').innerText = stats.totalWorkers || 0;
-        document.getElementById('statPendingKyc').innerText = stats.pendingKyc || 0;
-        document.getElementById('statVerifiedPros').innerText = (stats.pro || 0) + (stats.trusted || 0);
-        document.getElementById('statInquiries').innerText = stats.totalInquiries || 0;
-      } catch (err) {
-        console.error('Failed to load stats:', err);
-      }
-    }
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+    btn.classList.add('active');
+    document.getElementById('pageTitle').textContent = {dashboard:'Dashboard',workers:'Workers',kyc:'KYC Queue',inquiries:'Inquiries'}[id]||id;
+    if(id==='dashboard') loadStats();
+    if(id==='workers') loadWorkers();
+    if(id==='kyc') loadKyc();
+    if(id==='inquiries') loadInquiries();
+  }
 
-    function getBadgePill(status) {
-      if (status === 'PRO') {
-        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">PRO</span>`;
-      } else if (status === 'TRUSTED') {
-        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">TRUSTED</span>`;
-      } else if (status === 'BASIC_VERIFIED') {
-        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">BASIC</span>`;
-      } else if (status === 'PENDING') {
-        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 animate-pulse">PENDING KYC</span>`;
-      } else {
-        return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">${status}</span>`;
-      }
-    }
+  function initApp() { loadStats(); loadCategoriesForModal(); }
 
-    async function loadTechnicians() {
-      const tbody = document.getElementById('techniciansTableBody');
-      const search = document.getElementById('workerSearchInput').value;
-      const status = document.getElementById('workerStatusFilter').value;
+  async function loadStats() {
+    try {
+      const r = await af('/api/admin/stats'); const s = await r.json();
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card"><div class="label">Total Workers</div><div class="value" style="color:var(--cyan)">${s.totalWorkers}</div><div class="sub">Registered</div></div>
+        <div class="stat-card"><div class="label">Available Now</div><div class="value" style="color:var(--green)">${s.availableWorkers}</div></div>
+        <div class="stat-card"><div class="label">PRO Verified</div><div class="value" style="color:var(--green)">${s.pro}</div></div>
+        <div class="stat-card"><div class="label">Trusted</div><div class="value" style="color:var(--cyan)">${s.trusted}</div></div>
+        <div class="stat-card"><div class="label">KYC Pending</div><div class="value" style="color:var(--red)">${s.pendingKyc}</div></div>
+        <div class="stat-card"><div class="label">Inquiries</div><div class="value" style="color:var(--purple)">${s.totalInquiries}</div></div>
+        <div class="stat-card"><div class="label">Categories</div><div class="value" style="color:var(--amber)">${s.totalCategories}</div></div>
+      `;
+    } catch(e) {}
+  }
 
-      try {
-        let url = `/api/admin/technicians?status=${status}&search=${encodeURIComponent(search)}`;
-        const res = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.status === 401 || res.status === 403) return logout();
-        const technicians = await res.json();
+  async function loadWorkers() {
+    const search = document.getElementById('workerSearch').value;
+    const status = document.getElementById('workerStatusFilter').value;
+    document.getElementById('workersTable').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px"><div class="spinner"></div></td></tr>';
+    try {
+      let url = '/api/admin/technicians?status='+encodeURIComponent(status);
+      if(search) url += '&search='+encodeURIComponent(search);
+      const r = await af(url); const list = await r.json();
+      const tbody = document.getElementById('workersTable');
+      if(!list||list.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">No workers found.</td></tr>';return;}
+      tbody.innerHTML = list.map(t=>{
+        const vs=t.verification_status;
+        const bc=vs==='PRO'?'b-pro':vs==='TRUSTED'?'b-trusted':vs==='BASIC_VERIFIED'?'b-basic':'b-pending';
+        const wa=fwa(t.phone);
+        return `<tr>
+          <td><div style="font-weight:500">${esc(t.name)}</div><div style="font-size:0.72rem;color:var(--muted)">ID #${t.id}</div></td>
+          <td><div class="phone-mono">${esc(t.phone||'—')}</div>${t.phone?`<a href="https://wa.me/${wa}" target="_blank" class="wa-link">💬 WhatsApp</a>`:''}</td>
+          <td style="max-width:160px;font-size:0.78rem;color:var(--muted)">${esc(t.categories||'General')}</td>
+          <td><span class="badge ${bc}">${vs.replace(/_/g,' ')}</span></td>
+          <td><span class="stars-sm">★</span> ${(t.rating||0).toFixed(1)} <span class="text-muted">(${t.total_reviews||0})</span></td>
+          <td>${t.completed_jobs_count||0}</td>
+          <td><div class="action-btns">
+            ${vs!=='BASIC_VERIFIED'?`<button class="btn-sm btn-approve" onclick="setStatus(${t.id},'BASIC_VERIFIED')">Basic</button>`:''}
+            ${vs!=='TRUSTED'?`<button class="btn-sm btn-trust" onclick="setStatus(${t.id},'TRUSTED')">Trust</button>`:''}
+            ${vs!=='PRO'?`<button class="btn-sm btn-pro" onclick="setStatus(${t.id},'PRO')">PRO ✓</button>`:''}
+            <button class="btn-sm btn-suspend" onclick="setStatus(${t.id},'SUSPENDED')">Suspend</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    } catch(e) {}
+  }
 
-        if (technicians.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-500">No technicians found matching criteria</td></tr>`;
-          return;
-        }
+  async function loadKyc() {
+    document.getElementById('kycTable').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px"><div class="spinner"></div></td></tr>';
+    try {
+      const r = await af('/api/admin/technicians?status=PENDING'); const list = await r.json();
+      const tbody = document.getElementById('kycTable');
+      if(!list||list.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">🎉 No pending KYC applications.</td></tr>';return;}
+      tbody.innerHTML = list.map(t=>{
+        const wa=fwa(t.phone);
+        const ps=t.police_report_status||'NOT_SUBMITTED';
+        const pb=ps==='VERIFIED'?'<span class="badge b-resolved">Verified</span>':ps==='RECEIPT_SUBMITTED'?'<span class="badge b-basic">Receipt Submitted</span>':'<span class="badge b-pending">Not Submitted</span>';
+        const age=Math.floor((Date.now()-new Date(t.created_at).getTime())/86400000);
+        return `<tr>
+          <td><div style="font-weight:500">${esc(t.name)}</div><div style="font-size:0.72rem;color:var(--muted)">${esc((t.bio||'').substring(0,50))}…</div></td>
+          <td><div class="phone-mono">${esc(t.phone||'—')}</div><a href="https://wa.me/${wa}" target="_blank" class="wa-link">💬 Chat</a></td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem">${esc(t.nic_number||'—')}</td>
+          <td>${pb}</td>
+          <td style="font-size:0.8rem;color:var(--muted)">${age}d ago</td>
+          <td><div class="action-btns">
+            <button class="btn-sm btn-approve" onclick="setStatus(${t.id},'BASIC_VERIFIED')">✓ Basic</button>
+            <button class="btn-sm btn-trust" onclick="setStatus(${t.id},'TRUSTED')">✓ Trusted</button>
+            <button class="btn-sm btn-suspend" onclick="setStatus(${t.id},'REJECTED')">✗ Reject</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    } catch(e) {}
+  }
 
-        tbody.innerHTML = technicians.map(t => {
-          return `
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="py-3 px-4">
-                <div class="font-bold text-white">${t.name}</div>
-                <div class="text-[11px] text-slate-400 line-clamp-1">${t.bio || 'No bio'}</div>
-              </td>
-              <td class="py-3 px-4 font-mono">
-                <div class="text-cyan-400">${t.phone}</div>
-                <div class="text-[11px] text-slate-500">NIC: ${t.nic_number || 'Not provided'}</div>
-              </td>
-              <td class="py-3 px-4">
-                <span class="text-slate-300">${t.categories || 'General Handyman'}</span>
-              </td>
-              <td class="py-3 px-4 font-mono">
-                <div class="text-amber-400 font-bold">★ ${t.rating ? parseFloat(t.rating).toFixed(1) : '5.0'}</div>
-                <div class="text-[11px] text-slate-500">${t.completed_jobs_count || 0} jobs completed</div>
-              </td>
-              <td class="py-3 px-4">
-                ${getBadgePill(t.verification_status)}
-              </td>
-              <td class="py-3 px-4 text-right">
-                <div class="inline-flex items-center gap-1.5">
-                  <select onchange="updateWorkerStatus(${t.id}, this.value)" class="bg-[#040814] border border-white/10 text-[11px] text-slate-300 rounded px-2 py-1 focus:outline-none focus:border-cyan-400">
-                    <option value="" disabled selected>Change Tier...</option>
-                    <option value="BASIC_VERIFIED">Set Basic Verified</option>
-                    <option value="TRUSTED">Promote to Trusted</option>
-                    <option value="PRO">Promote to PRO</option>
-                    <option value="SUSPENDED">Suspend Worker</option>
-                  </select>
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      } catch (err) {
-        console.error('Failed to load technicians:', err);
-      }
-    }
+  async function loadInquiries() {
+    document.getElementById('inquiriesTable').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px"><div class="spinner"></div></td></tr>';
+    try {
+      const r = await af('/api/admin/inquiries'); const list = await r.json();
+      const tbody = document.getElementById('inquiriesTable');
+      if(!list||list.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No inquiries yet.</td></tr>';return;}
+      tbody.innerHTML = list.map(i=>{
+        const urg=i.urgency||'MEDIUM';
+        const uc=urg==='EMERGENCY'?'b-emergency':urg==='HIGH'?'b-high':'b-basic';
+        const sc=i.status==='NEW'?'b-new':i.status==='CONTACTED'?'b-contacted':'b-resolved';
+        const wa=fwa(i.customer_phone);
+        const time=new Date(i.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+        const waMsg=encodeURIComponent('Hi '+i.customer_name+', this is Wedapola following up on your service inquiry.');
+        return `<tr>
+          <td><div style="font-weight:500">${esc(i.customer_name)}</div><div style="font-size:0.72rem;color:var(--muted)">${esc(i.city||'—')}</div></td>
+          <td><div class="phone-mono">${esc(i.customer_phone)}</div><a href="https://wa.me/${wa}?text=${waMsg}" target="_blank" class="wa-link">💬 Follow Up</a></td>
+          <td style="font-size:0.8rem">${esc(i.category_name||'General')}</td>
+          <td style="font-size:0.8rem;color:var(--muted)">${esc(i.technician_name||'—')}</td>
+          <td><span class="badge ${uc}">${urg}</span></td>
+          <td><span class="badge ${sc}">${i.status}</span></td>
+          <td style="font-size:0.75rem;color:var(--muted)">${time}</td>
+          <td><div class="action-btns">
+            ${i.status==='NEW'?`<button class="btn-sm btn-trust" onclick="updInq(${i.id},'CONTACTED')">Contacted</button>`:''}
+            ${i.status!=='RESOLVED'?`<button class="btn-sm btn-approve" onclick="updInq(${i.id},'RESOLVED')">Resolve</button>`:''}
+          </div></td>
+        </tr>`;
+      }).join('');
+    } catch(e) {}
+  }
 
-    async function updateWorkerStatus(id, newStatus) {
-      if (!newStatus) return;
-      try {
-        const res = await fetch(`/api/admin/technicians/${id}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ status: newStatus })
-        });
-        if (res.ok) {
-          loadTechnicians();
-          loadStats();
-        } else {
-          alert('Failed to update status');
-        }
-      } catch (err) {
-        alert('Network error updating status');
-      }
-    }
-
-    async function loadInquiries() {
-      const tbody = document.getElementById('inquiriesTableBody');
-      try {
-        const res = await fetch('/api/admin/inquiries', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.status === 401 || res.status === 403) return logout();
-        const inquiries = await res.json();
-
-        if (inquiries.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500">No customer callback requests recorded</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = inquiries.map(i => {
-          let urgencyClass = i.urgency === 'EMERGENCY' ? 'text-rose-400 font-bold' : (i.urgency === 'HIGH' ? 'text-amber-400 font-semibold' : 'text-slate-400');
-          let statusBadge = i.status === 'NEW' 
-            ? `<span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-400 font-bold">NEW</span>`
-            : `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400">${i.status}</span>`;
-
-          return `
-            <tr class="hover:bg-white/[0.02] transition-colors">
-              <td class="py-3 px-4 font-bold text-white">${i.customer_name}</td>
-              <td class="py-3 px-4 font-mono">
-                <a href="tel:${i.customer_phone}" class="text-cyan-400 hover:underline">${i.customer_phone}</a>
-              </td>
-              <td class="py-3 px-4 text-slate-300">${i.city || 'Colombo'}</td>
-              <td class="py-3 px-4 ${urgencyClass}">${i.urgency}</td>
-              <td class="py-3 px-4 text-slate-300 max-w-xs truncate">${i.description}</td>
-              <td class="py-3 px-4">${statusBadge}</td>
-              <td class="py-3 px-4 text-right">
-                <button onclick="updateInquiryStatus(${i.id}, 'CONTACTED')" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-slate-300 rounded text-[11px] border border-white/10">
-                  Mark Contacted
-                </button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      } catch (err) {
-        console.error('Failed to load inquiries:', err);
-      }
-    }
-
-    async function updateInquiryStatus(id, newStatus) {
-      try {
-        await fetch(`/api/admin/inquiries/${id}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ status: newStatus })
-        });
-        loadInquiries();
-        loadStats();
-      } catch (err) {}
-    }
-
-    // Add Technician Modal logic
-    function openAddTechnicianModal() {
-      document.getElementById('addTechModal').classList.remove('hidden');
-      document.getElementById('addTechModal').classList.add('flex');
-    }
-    function closeAddTechnicianModal() {
-      document.getElementById('addTechModal').classList.add('hidden');
-      document.getElementById('addTechModal').classList.remove('flex');
-    }
-
-    async function handleAddTechSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById('addTechSubmitBtn');
-      btn.disabled = true;
-      btn.innerText = 'Registering Worker...';
-
-      const [lat, lon] = document.getElementById('newTechCity').value.split(',');
-
-      const payload = {
-        name: document.getElementById('newTechName').value,
-        phone: document.getElementById('newTechPhone').value,
-        nicNumber: document.getElementById('newTechNic').value,
-        categoryId: parseInt(document.getElementById('newTechCategory').value),
-        verificationStatus: document.getElementById('newTechBadge').value,
-        latitude: parseFloat(lat),
-        longitude: parseFloat(lon),
-        bio: document.getElementById('newTechBio').value
-      };
-
-      try {
-        const res = await fetch('/api/admin/technicians', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          alert('Worker Registered Successfully!');
-          closeAddTechnicianModal();
-          document.getElementById('addTechForm').reset();
-          loadTechnicians();
-          loadStats();
-        } else {
-          alert('Failed to register worker');
-        }
-      } catch (err) {
-        alert('Network error while saving worker');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Save & Publish Worker';
-      }
-    }
-
-    // Init
-    document.addEventListener('DOMContentLoaded', () => {
+  async function setStatus(id, status) {
+    try {
+      const r = await af('/api/admin/technicians/'+id+'/status', {method:'PATCH', body:JSON.stringify({status})});
+      const data = await r.json();
+      toast(data.message||'Status updated');
+      const ap = document.querySelector('.page.active')?.id;
+      if(ap==='page-workers') loadWorkers();
+      if(ap==='page-kyc') loadKyc();
       loadStats();
-      loadTechnicians();
-    });
-  </script>
+    } catch(e) { toast('Failed to update status.'); }
+  }
+
+  async function updInq(id, status) {
+    try { await af('/api/admin/inquiries/'+id+'/status',{method:'PATCH',body:JSON.stringify({status})}); toast('Updated to '+status); loadInquiries(); loadStats(); } catch(e) {}
+  }
+
+  async function loadCategoriesForModal() {
+    try {
+      const r = await fetch(API+'/api/categories'); const cats = await r.json();
+      const sel = document.getElementById('aw-category');
+      cats.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=c.name_en; sel.appendChild(o); });
+    } catch(e) {}
+  }
+
+  function openAddWorker() { document.getElementById('addWorkerModal').classList.add('show'); }
+  function closeAddWorker() { document.getElementById('addWorkerModal').classList.remove('show'); }
+
+  async function submitAddWorker() {
+    const name=document.getElementById('aw-name').value.trim();
+    const phone=document.getElementById('aw-phone').value.trim();
+    if(!name||!phone){toast('Name and phone are required.');return;}
+    const payload={name,phone,nicNumber:document.getElementById('aw-nic').value.trim(),bio:document.getElementById('aw-bio').value.trim(),verificationStatus:document.getElementById('aw-status').value,categoryId:document.getElementById('aw-category').value||undefined,latitude:parseFloat(document.getElementById('aw-lat').value)||6.9271,longitude:parseFloat(document.getElementById('aw-lon').value)||79.8612};
+    try {
+      const r = await af('/api/admin/technicians',{method:'POST',body:JSON.stringify(payload)});
+      const data = await r.json();
+      if(data.success){closeAddWorker();toast('✅ '+data.message);loadWorkers();loadStats();}
+      else toast('Failed: '+(data.error||'Unknown error'));
+    } catch(e) { toast('Could not connect.'); }
+  }
+
+  function fwa(p){if(!p)return'94700000000';return p.replace(/[^0-9]/g,'').replace(/^0/,'94');}
+  function esc(s){if(!s&&s!==0)return'';return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+</script>
 </body>
 </html>
