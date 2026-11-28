@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../auth/providers/app_mode_provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../jobs/data/job_models.dart';
+import '../../jobs/providers/active_job_provider.dart';
 import '../data/home_repository.dart';
 import '../providers/home_provider.dart';
 
@@ -27,9 +31,16 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
     final techniciansAsync = ref.watch(availableTechniciansProvider);
     final selectedCat = ref.watch(selectedCategoryProvider);
     final authState = ref.watch(authStateProvider);
+    final activeJob = ref.watch(activeJobProvider);
+    final mode = ref.watch(appModeProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/post-job'),
+        icon: const Icon(Icons.add_task_rounded),
+        label: const Text('Post Job'),
+      ),
       appBar: AppBar(
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,13 +51,19 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         ),
         centerTitle: false,
         actions: [
-          IconButton(
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () {
-              ref.invalidate(categoriesProvider);
-              ref.invalidate(availableTechniciansProvider);
-            },
+          PopupMenuButton<AppLanguage>(
+            tooltip: 'Language',
+            icon: const Icon(Icons.translate_rounded),
+            initialValue: mode.language,
+            onSelected: (lang) => ref.read(appModeProvider.notifier).setLanguage(lang),
+            itemBuilder: (_) => AppLanguage.values
+                .map((l) => PopupMenuItem(value: l, child: Text(l.label)))
+                .toList(),
+          ),
+          TextButton.icon(
+            onPressed: () => ref.read(appModeProvider.notifier).toggleRole(),
+            icon: const Icon(Icons.swap_horiz_rounded, color: Colors.white),
+            label: const Text('Worker Mode', style: TextStyle(color: Colors.white, fontSize: 12)),
           ),
           IconButton(
             tooltip: authState is AuthAuthenticated ? 'Sign Out' : 'Sign In',
@@ -64,6 +81,24 @@ class _CustomerHomeScreenState extends ConsumerState<CustomerHomeScreen> {
         },
         child: CustomScrollView(
           slivers: [
+            if (activeJob != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Card(
+                    color: const Color(0xFFE3F2FD),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading: const Icon(Icons.engineering_rounded, color: Color(0xFF0066FF)),
+                      title: Text('Active Job #${activeJob.id} • ${activeJob.status.label}',
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(activeJob.categoryName),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => context.push('/active-job'),
+                    ),
+                  ),
+                ),
+              ),
             SliverToBoxAdapter(
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),

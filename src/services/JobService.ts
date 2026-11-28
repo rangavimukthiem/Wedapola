@@ -138,7 +138,7 @@ export class JobService {
         await pool.execute('UPDATE quotes SET status = "ACCEPTED" WHERE id = ?', [quoteId]);
         await pool.execute('UPDATE quotes SET status = "REJECTED" WHERE request_id = ? AND id != ?', [requestId, quoteId]);
 
-        const startPin = String(Math.floor(100000 + Math.random() * 900000));
+        const startPin = String(Math.floor(1000 + Math.random() * 9000));
         const [result]: any = await pool.execute(
             'INSERT INTO jobs (request_id, quote_id, technician_id, customer_id, status, start_pin) VALUES (?, ?, ?, ?, ?, ?)',
             [requestId, quoteId, technicianId, customerId, 'ACCEPTED', startPin]
