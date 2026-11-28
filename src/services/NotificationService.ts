@@ -1,4 +1,5 @@
 import pool from '../config/db';
+import { getFirebaseMessaging } from './FirebaseAdmin';
 
 export type NotificationChannel = 'PUSH' | 'WHATSAPP' | 'SMS' | 'IN_APP';
 
@@ -10,10 +11,18 @@ export class NotificationService {
         title: string,
         body: string
     ) {
+        let deliveredByPush = false;
+
+        try {
+            deliveredByPush = await this.sendPushToUser(userId, title, body, { type });
+        } catch (err) {
+            console.warn('Failed to send FCM notification:', err);
+        }
+
         try {
             await pool.execute(
                 `INSERT INTO notifications (user_id, channel, type, title, body) VALUES (?, ?, ?, ?, ?)`,
-                [userId, channel, type, title, body]
+                [userId, deliveredByPush ? 'PUSH' : channel === 'PUSH' ? 'IN_APP' : channel, type, title, body]
             );
         } catch (err) {
             console.warn('Failed to persist notification:', err);
@@ -28,6 +37,46 @@ export class NotificationService {
             [workerId, fcmToken, deviceType]
         );
         return { success: true };
+    }
+
+    private async sendPushToUser(userId: number, title: string, body: string, data: Record<string, string>) {
+        const firebaseMessaging = getFirebaseMessaging();
+        if (!firebaseMessaging) return false;
+
+        const [rows]: any = await pool.execute(
+            `SELECT wd.fcm_token
+             FROM worker_devices wd
+             JOIN technician_profiles tp ON tp.id = wd.worker_id
+             WHERE tp.user_id = ?`,
+            [userId]
+        );
+        const tokens: string[] = rows.map((row: any) => row.fcm_token);
+        if (tokens.length === 0) return false;
+
+        for (let offset = 0; offset < tokens.length; offset += 500) {
+            const batch = tokens.slice(offset, offset + 500);
+            const response = await firebaseMessaging.sendEachForMulticast({
+                tokens: batch,
+                notification: { title, body },
+                data,
+                android: { priority: 'high' },
+                apns: { payload: { aps: { sound: 'default' } } },
+            });
+
+            for (let i = 0; i < response.responses.length; i++) {
+                const result = response.responses[i];
+                if (!result.success && (
+                    result.error?.code === 'messaging/registration-token-not-registered' ||
+                    result.error?.code === 'messaging/invalid-registration-token'
+                )) {
+                    await pool.execute('DELETE FROM worker_devices WHERE fcm_token = ?', [batch[i]]);
+                }
+            }
+
+            if (response.successCount > 0) return true;
+        }
+
+        return false;
     }
 
     async notifyNearbyWorkers(
@@ -64,16 +113,13 @@ export class NotificationService {
                 workers = rows;
             }
 
-            for (const w of workers) {
-                const channel: NotificationChannel = process.env.FIREBASE_PROJECT_ID ? 'PUSH' : 'IN_APP';
-                await this.sendNotification(
+            await Promise.all(workers.map((w) => this.sendNotification(
                     w.user_id,
-                    channel,
+                    'IN_APP',
                     'NEW_JOB_LEAD',
                     'New Job Nearby • අලුත් වැඩක්!',
                     `Request #${requestId} is available in your service area. Open Wedapola to submit a quote.`
-                );
-            }
+                )));
 
             return { notifiedCount: workers.length };
         } catch (err) {

@@ -20,6 +20,9 @@ services:
       - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-dev_refresh_secret}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
       - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
       - LOCAL_STORAGE_PATH=/app/storage
       - PUBLIC_STORAGE_BASE_URL=http://localhost:3000/storage
@@ -37,7 +40,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=ekafy-network"
-      - "traefik.http.routers.wedapola.rule=Host(`${APP_HOST:-wedapola.ekafy.com}`)"
+      - "traefik.http.routers.wedapola.rule=Host(`${APP_HOST:-wadapola.ekafy.com}`)"
       - "traefik.http.routers.wedapola.entrypoints=web"
       - "traefik.http.services.wedapola.loadbalancer.server.port=3000"
     networks:

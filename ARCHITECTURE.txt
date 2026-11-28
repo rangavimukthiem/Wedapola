@@ -1,0 +1,101 @@
+WEDAPOLA PROJECT ARCHITECTURE
+============================
+
+OVERVIEW
+--------
+Wedapola is a service marketplace connecting customers with technicians. The
+repository contains a Flutter mobile application, a Node.js/Express API,
+static browser-based customer and admin portals, and a MariaDB database.
+
+RUNTIME COMPONENTS
+------------------
+
+1. Flutter client (mobile/)
+   - Cross-platform app with customer and worker modes.
+   - Screens and features are organized under mobile/lib/features; shared
+     networking, routing, theme, and widgets are under mobile/lib/core.
+   - Riverpod manages app/auth state. GoRouter handles navigation.
+   - Dio calls the API under /api and reads the access JWT from secure storage.
+   - Google Sign-In is used for authentication. API_BASE_URL can be overridden
+     at build/run time; the configured default points to the hosted API.
+
+2. API server (src/)
+   - Express application starts in src/index.ts (port 3000 by default).
+   - Middleware includes CORS, Helmet, and JSON request parsing.
+   - Routes map HTTP endpoints to controllers; controllers delegate business
+     operations to services; services access MariaDB through the shared
+     mysql2 connection pool in src/config/db.ts.
+   - API route groups include auth, users, categories, technicians, admin,
+     KYC, and service requests/jobs. Job routes cover requests, quotes, job
+     lifecycle, photo uploads, and reviews.
+   - JWT authentication middleware protects routes and role middleware limits
+     selected operations to customers, technicians, or administrators.
+   - The server also serves /storage files, the admin UI at /admin, the
+     customer portal at /portal, redirects / to /portal/, and exposes /health.
+
+3. Browser frontends (public/)
+   - public/portal contains the customer job portal.
+   - public/admin contains the administration interface.
+   - These files are served directly by Express; they are not a separate
+     frontend build service.
+
+DATA AND FILES
+--------------
+   - MariaDB schema and initial category seed data are in
+     database/init/01_schema.sql. Core entities include users and profiles,
+     service categories, requests, quotes, jobs and status history, reviews,
+     stored-file metadata, and notifications.
+   - scripts/migrate.js is exposed through the npm migrate script.
+   - File operations are abstracted behind StorageService and a provider
+     interface. Local disk storage is the default; S3-compatible storage can
+     be selected with STORAGE_PROVIDER. Upload metadata is recorded in
+     storage_files. Local files are served from /storage.
+   - Authentication verifies Google ID tokens, creates customer accounts and
+     profiles as needed, then issues access and refresh JWTs. The mobile client
+     currently attaches the access token; its 401 handler does not yet perform
+     a refresh flow.
+
+REQUEST FLOW
+------------
+   1. A user signs in through Google; the API verifies identity and issues JWTs.
+   2. A customer creates a service request with a category, description,
+      location, urgency, and scheduling details.
+   3. Technicians can view eligible requests and submit quotes.
+   4. The customer accepts a quote, creating/advancing a job.
+   5. The job proceeds through status updates, optional photo uploads,
+      completion confirmation, and reviews. Status and review data are stored
+      in MariaDB; notifications are persisted by NotificationService.
+
+DEPLOYMENT
+----------
+   - Dockerfile builds and runs the Node API in a Node 20 container.
+   - docker-compose.yml defines API, MariaDB 10.11, and Redis 7 services.
+     MariaDB initializes from database/init and persists data in a named volume;
+     uploaded local files also use a named volume.
+   - Compose exposes the API, database, and Redis ports and attaches the API
+     to the configured external ekafy-network for reverse-proxy routing.
+   - Redis is provisioned by Compose, but the current API source does not show
+     Redis client usage.
+
+KEY CONFIGURATION
+-----------------
+   - PORT: API listening port (default 3000)
+   - DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD: MariaDB connection
+   - GOOGLE_CLIENT_ID: Google ID-token audience
+   - JWT_SECRET, JWT_REFRESH_SECRET: token signing keys
+   - STORAGE_PROVIDER, LOCAL_STORAGE_PATH: file storage selection and path
+   - S3_ENDPOINT, S3_BUCKET_NAME, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY,
+     S3_PUBLIC_DOMAIN: S3-compatible storage configuration
+   - See .env.example and docker-compose.yml for deployment defaults.
+
+CODE ORGANIZATION
+-----------------
+   src/routes/       HTTP route definitions
+   src/controllers/  Request/response handling
+   src/services/     Business logic and storage providers
+   src/middleware/   Authentication and authorization
+   src/config/       Database connection setup
+   database/init/    Schema and seed data
+   mobile/lib/       Flutter app source
+   public/           Static browser frontends
+   scripts/          Database migration utilities

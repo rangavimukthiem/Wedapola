@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/notifications/push_notification_service.dart';
 import '../../auth/providers/app_mode_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../jobs/data/job_models.dart';
 import '../../jobs/providers/active_job_provider.dart';
 
-class WorkerHomeScreen extends ConsumerWidget {
+final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) {
+  final service = PushNotificationService(ref.watch(dioProvider));
+  ref.onDispose(() => service.dispose());
+  return service;
+});
+
+class WorkerHomeScreen extends ConsumerStatefulWidget {
   const WorkerHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WorkerHomeScreen> createState() => _WorkerHomeScreenState();
+}
+
+class _WorkerHomeScreenState extends ConsumerState<WorkerHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(pushNotificationServiceProvider).initializeForWorker();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final mode = ref.watch(appModeProvider);
     final leads = ref.watch(workerLeadsProvider);
     final activeJob = ref.watch(activeJobProvider);

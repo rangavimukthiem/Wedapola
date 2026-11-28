@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "985626003832",
+    "project_id": "sevalink-76991",
+    "storage_bucket": "sevalink-76991.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:985626003832:android:c8aaa88c21f1d3b429608d",
+        "android_client_info": {
+          "package_name": "com.ekafy.wedapola.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC22X7kV1JMGTchRVvRy66HG2-7Y-PClmM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

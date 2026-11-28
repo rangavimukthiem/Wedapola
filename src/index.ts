@@ -51,9 +51,9 @@ app.get('/portal', (_req: Request, res: Response) => {
     res.sendFile(path.join(publicPath, 'portal', 'index.html'));
 });
 
-// Root → redirect to customer portal
+// Main customer landing page
 app.get('/', (_req: Request, res: Response) => {
-    res.redirect('/portal/');
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 // Health check

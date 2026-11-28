@@ -10,7 +10,7 @@ Wedapola is built to run natively within the **EKAFY containerized ecosystem**:
 
 ```mermaid
 graph TD
-    Traefik[Traefik Reverse Proxy (SSL / Dynamic Labels)] -->|Host: wedapola.ekafy.com| App[Wedapola Node.js App (:3000)]
+    Traefik[Traefik Reverse Proxy (SSL / Dynamic Labels)] -->|Host: wadapola.ekafy.com| App[Wedapola Node.js App (:3000)]
     App -->|mysql2/promise pool| MariaDB[(Tenant MariaDB: db_tenant_wedapola)]
     App -->|BullMQ Queue| Redis[(EKAFY Redis: ekafy-redis)]
     App -->|Push / HTTP v1| FCM[Firebase Cloud Messaging]

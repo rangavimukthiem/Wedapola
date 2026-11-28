@@ -1,3 +1,4 @@
+// @ts-ignore: Express is provided by the application environment.
 import { Router } from 'express';
 import { authController } from '../controllers/AuthController';
 
