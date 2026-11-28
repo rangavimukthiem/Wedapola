@@ -14,7 +14,7 @@ services:
       - PORT=3000
       - DB_HOST=mariadb
       - DB_PORT=3306
-      - DB_NAME=wedapola
+      - DB_NAME=${DB_NAME:-wedapola}
       - DB_USER=wedapola
       - DB_PASSWORD=${DB_PASSWORD:-wedapola_dev_password}
       - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret}
@@ -57,7 +57,7 @@ services:
       - "3306:3306"
     environment:
       - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root_password}
-      - MARIADB_DATABASE=wedapola
+      - MARIADB_DATABASE=${DB_NAME:-wedapola}
       - MARIADB_USER=wedapola
       - MARIADB_PASSWORD=${DB_PASSWORD:-wedapola_dev_password}
     volumes:

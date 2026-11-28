@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS wedapola CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE wedapola;
-
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     google_user_id VARCHAR(255) UNIQUE NOT NULL,
@@ -194,7 +191,19 @@ CREATE TABLE IF NOT EXISTS notifications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Initial Seed Data: Sri Lankan Localization & Service Taxonomy
-INSERT INTO service_categories (group_name_en, group_name_si, name_en, name_si, icon, requires_pro_badge, display_order) VALUES
+CREATE TEMPORARY TABLE IF NOT EXISTS service_category_seed (
+    group_name_en VARCHAR(255) NOT NULL,
+    group_name_si VARCHAR(255) NOT NULL,
+    name_en VARCHAR(255) NOT NULL,
+    name_si VARCHAR(255) NOT NULL,
+    icon VARCHAR(255),
+    requires_pro_badge BOOLEAN DEFAULT FALSE,
+    display_order INT DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+TRUNCATE TABLE service_category_seed;
+
+INSERT INTO service_category_seed (group_name_en, group_name_si, name_en, name_si, icon, requires_pro_badge, display_order) VALUES
 -- 1. Garden, Tree & Estate Work
 ('Garden, Tree & Estate Work', 'ගෙවතු, ගස් කැපීම සහ වතු පිටි නඩත්තුව', 'Tree Pruning & Felling', 'ගස් වල අතු කැපීම සහ ගස් කැපීම', 'park', FALSE, 1),
 ('Garden, Tree & Estate Work', 'ගෙවතු, ගස් කැපීම සහ වතු පිටි නඩත්තුව', 'Grass Cutting & Lawn Care', 'තණකොළ කැපීම සහ ගෙවතු පිරිසිදු කිරීම', 'grass', FALSE, 2),
@@ -229,3 +238,17 @@ INSERT INTO service_categories (group_name_en, group_name_si, name_en, name_si, 
 -- 6. General Labor & Moving Help
 ('General Labor & Moving Help', 'සාමාන්‍ය කම්කරු සහ බඩු ප්‍රවාහන සහාය', 'House Shifting & Heavy Lifting', 'නිවෙස් මාරු කිරීම සහ බඩු එසවීම', 'local_shipping', FALSE, 22),
 ('General Labor & Moving Help', 'සාමාන්‍ය කම්කරු සහ බඩු ප්‍රවාහන සහාය', 'General Handyman / Odd Jobs', 'සුළු අලුත්වැඩියා සහ විවිධ වැඩ', 'handyman', FALSE, 23);
+
+INSERT INTO service_categories (
+    group_name_en, group_name_si, name_en, name_si, icon, requires_pro_badge, display_order
+)
+SELECT seed.group_name_en, seed.group_name_si, seed.name_en, seed.name_si,
+       seed.icon, seed.requires_pro_badge, seed.display_order
+FROM service_category_seed AS seed
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_categories AS existing
+    WHERE existing.name_en = seed.name_en
+);
+
+DROP TEMPORARY TABLE service_category_seed;
