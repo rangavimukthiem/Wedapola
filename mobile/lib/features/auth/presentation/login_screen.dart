@@ -74,6 +74,13 @@ class LoginScreen extends ConsumerWidget {
                         ref.read(authStateProvider.notifier).loginWithGoogle();
                       },
                     ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () {
+                        ref.read(authStateProvider.notifier).continueAsGuest();
+                      },
+                      child: const Text('Browse Nearby Workers as Guest'),
+                    ),
                   ],
                 ),
               ),

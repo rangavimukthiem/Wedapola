@@ -7,6 +7,7 @@ abstract class AuthState {}
 class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 class AuthAuthenticated extends AuthState {}
+class AuthGuest extends AuthState {}
 class AuthUnauthenticated extends AuthState {}
 class AuthError extends AuthState {
   final String message;
@@ -43,6 +44,10 @@ class AuthNotifier extends Notifier<AuthState> {
     } catch (e) {
       state = AuthError(e.toString());
     }
+  }
+
+  void continueAsGuest() {
+    state = AuthGuest();
   }
 
   Future<void> logout() async {
