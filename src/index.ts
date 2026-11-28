@@ -9,6 +9,7 @@ import categoryRoutes from './routes/categories';
 import technicianRoutes from './routes/technicians';
 import jobRoutes from './routes/jobs';
 import adminRoutes from './routes/admin';
+import kycRoutes from './routes/kyc';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/technicians', technicianRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/kyc', kycRoutes);
 app.use('/api', jobRoutes);
 
 // Storage route

@@ -17,5 +17,7 @@ router.post('/technicians', adminController.createTechnician.bind(adminControlle
 router.patch('/technicians/:id/status', adminController.updateTechnicianStatus.bind(adminController));
 router.get('/inquiries', adminController.getInquiries.bind(adminController));
 router.patch('/inquiries/:id/status', adminController.updateInquiryStatus.bind(adminController));
+router.get('/reviews/quarantine', adminController.getQuarantinedReviews.bind(adminController));
+router.patch('/reviews/:id/status', adminController.updateReviewStatus.bind(adminController));
 
 export default router;

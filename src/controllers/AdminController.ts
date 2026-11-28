@@ -96,6 +96,30 @@ export class AdminController {
             res.status(500).json({ error: 'Failed to update inquiry status' });
         }
     }
+
+    async getQuarantinedReviews(req: Request, res: Response): Promise<void> {
+        try {
+            const reviews = await adminService.getQuarantinedReviews();
+            res.status(200).json(reviews);
+        } catch (error: any) {
+            res.status(500).json({ error: 'Failed to retrieve quarantined reviews' });
+        }
+    }
+
+    async updateReviewStatus(req: Request, res: Response): Promise<void> {
+        try {
+            const id = parseInt(req.params.id as string, 10);
+            const { status } = req.body;
+            if (!['PUBLISHED', 'QUARANTINED', 'DISPUTED'].includes(status)) {
+                res.status(400).json({ error: 'Invalid review status' });
+                return;
+            }
+            const result = await adminService.updateReviewStatus(id, status);
+            res.status(200).json(result);
+        } catch (error: any) {
+            res.status(500).json({ error: 'Failed to update review status' });
+        }
+    }
 }
 
 export const adminController = new AdminController();

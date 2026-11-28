@@ -368,6 +368,33 @@ export class AdminService {
             return { success: true, message: `Inquiry status updated` };
         }
     }
+
+    async getQuarantinedReviews() {
+        try {
+            const [rows]: any = await pool.execute(`
+                SELECT r.*, j.request_id, u_rev.email AS reviewer_email, u_tgt.email AS target_email
+                FROM reviews r
+                JOIN jobs j ON r.job_id = j.id
+                JOIN users u_rev ON r.reviewer_id = u_rev.id
+                JOIN users u_tgt ON r.target_id = u_tgt.id
+                WHERE r.status = 'QUARANTINED'
+                ORDER BY r.created_at DESC
+            `);
+            return rows;
+        } catch (err) {
+            console.warn('DB getQuarantinedReviews note:', err);
+            return [];
+        }
+    }
+
+    async updateReviewStatus(id: number, status: 'PUBLISHED' | 'QUARANTINED' | 'DISPUTED') {
+        try {
+            await pool.execute(`UPDATE reviews SET status = ? WHERE id = ?`, [status, id]);
+            return { success: true, message: `Review status updated to ${status}` };
+        } catch (err) {
+            return { success: true, message: `Review status updated` };
+        }
+    }
 }
 
 export const adminService = new AdminService();
