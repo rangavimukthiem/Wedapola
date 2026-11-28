@@ -4,12 +4,18 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final secureStorageProvider = Provider((ref) => const FlutterSecureStorage());
 
+// Override for local development with:
+// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+const _apiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'https://wedapola.ekafy.com/api',
+);
+
 final dioProvider = Provider<Dio>((ref) {
   final storage = ref.watch(secureStorageProvider);
   
   final dio = Dio(BaseOptions(
-    // TODO: Replace with environment variable or dynamic config for prod
-    baseUrl: 'http://10.0.2.2:3000/api', // 10.0.2.2 is Android emulator localhost alias
+    baseUrl: _apiBaseUrl,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   ));

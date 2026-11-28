@@ -1,4 +1,4 @@
-package com.ekafy.wedapola.mobile
+package com.sevalink.wedapola.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

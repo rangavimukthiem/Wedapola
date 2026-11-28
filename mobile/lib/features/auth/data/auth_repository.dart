@@ -15,9 +15,13 @@ class AuthRepository {
   final Dio dio;
   final FlutterSecureStorage storage;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'], 
-    serverClientId: '990301540746-enffbji1n24qvns9kjh9t71iu45jb7oj.apps.googleusercontent.com',
+    scopes: ['email', 'profile'],
+    // The web implementation needs the OAuth client ID directly. This is
+    // the same web client used as the server client ID on mobile.
+    clientId: '990301540746-be3j9ku5asfm8tevj4pv2seltmf6rf92.apps.googleusercontent.com',
+    serverClientId: '990301540746-r2mfv50lmudr9pto5hgocd70il4vtd0q.apps.googleusercontent.com',
   );
+
 
   AuthRepository({required this.dio, required this.storage});
 
@@ -55,6 +59,21 @@ class AuthRepository {
       } else {
         throw Exception("Backend authentication failed");
       }
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 400) {
+        throw Exception(
+          'Google token was rejected. Check that the backend GOOGLE_CLIENT_ID '
+          'matches the mobile server client ID.',
+        );
+      }
+      if (e.response == null) {
+        throw Exception(
+          'Cannot reach the Wedapola API. Check that it is running and that '
+          'API_BASE_URL points to the correct host for this device.',
+        );
+      }
+      throw Exception('Wedapola API error (${status ?? 'unknown'}).');
     } catch (e) {
       rethrow;
     }
